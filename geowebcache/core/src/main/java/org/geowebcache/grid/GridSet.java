@@ -22,7 +22,7 @@ import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-
+/*In GeoWebCache, a projection is also known as a gridset*/
 public class GridSet {
 
     private String name;
@@ -90,31 +90,40 @@ public class GridSet {
     }
 
     /**
+     * 是根据分辨率算比例尺还是根据比例尺算分辨率
      * @param resolutionsPreserved
      *            {@code true} if the resolutions are preserved and the scaleDenominators
      *            calculated, {@code false} if the resolutions are calculated based on the sacale
-     *            denominators.
+     *            denominators
      */
     void setResolutionsPreserved(boolean resolutionsPreserved) {
         this.resolutionsPreserved = resolutionsPreserved;
     }
 
+    /*从某个瓦片的坐标得到该瓦片的BoundingBox(边界BOX)*/
     protected BoundingBox boundsFromIndex(long[] tileIndex) {
+//        弄清楚理解这部分是怎么算的
+//        参照http://geowebcache.org/docs/current/concepts/gridsets.html
+        //tileIndex[x,y,z]
         final int tileZ = (int) tileIndex[2];
         Grid grid = getGrid(tileZ);
 
         final long tileX = tileIndex[0];
         final long tileY;
+//        坐标原点在左上角
         if (yBaseToggle) {
+//            结合下面tileBounds的计算理解为什么tileY这么计算
             tileY = tileIndex[1] - grid.getNumTilesHigh();
         } else {
             tileY = tileIndex[1];
         }
 
+//        grid所代表的宽度和高度瓦片所覆盖的范围
         double width = grid.getResolution() * getTileWidth();
         double height = grid.getResolution() * getTileHeight();
 
         final double[] tileOrigin = tileOrigin();
+//        一个瓦片的BoundingBox
         BoundingBox tileBounds = new BoundingBox(tileOrigin[0] + width * tileX, tileOrigin[1]
                 + height * (tileY), tileOrigin[0] + width * (tileX + 1), tileOrigin[1] + height
                 * (tileY + 1));
@@ -124,7 +133,8 @@ public class GridSet {
     /**
      * Finds the spatial bounding box of a rectangular group of tiles.
      * @param rectangleExtent the rectangle of tiles.  {minx, miny, maxx, maxy} in tile coordinates
-     * @return the spatial bounding box in the coordinates of the SRS used by the GridSet
+     * @return the spatial bounding box in
+     * the coordinates of the SRS used by the GridSet
      */
     protected BoundingBox boundsFromRectangle(long[] rectangleExtent) {
         Grid grid = getGridLevels()[(int) rectangleExtent[4]];
@@ -556,13 +566,12 @@ public class GridSet {
      * The rule is, if any of the following properties differ: {@link #getBounds()},
      * {@link #isTopLeftAligned()}, {@link #getTileHeight()}, {@link #getTileWidth()},
      * {@link #getSrs()}, OR none of the previously mentiond properties differ and
-     * {@link #getGrids()} are different, except if both the grids of {@code another} are a superset
+     * {@link #getGrid(int)} are different, except if both the grids of {@code another} are a superset
      * of the grids of this gridset (i.e. they are all the same but {@code another} just has more
      * zoom levels}.
      * </p>
-     * 
-     * @param oldGridSet
-     * @param another
+     *
+     * @param another oldGridSet
      * @return {@code true} if
      */
     public boolean shouldTruncateIfChanged(final GridSet another) {

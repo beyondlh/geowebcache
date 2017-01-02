@@ -193,6 +193,9 @@ public class GridSetFactoryTest extends TestCase {
     }
 
     public void testWideBoundsTallTile() throws Exception {
+
+        System.out.println(Math.round(1.2));
+        System.out.println(Math.round(5.7));
         BoundingBox extent = new BoundingBox(0, 0, 100, 45);
 
         // should give 4x1 tiles, with bounds height expanded to 50
@@ -266,4 +269,5 @@ public class GridSetFactoryTest extends TestCase {
         assertEquals(0D, gridSet.tileOrigin()[0]);
         assertEquals(490D, gridSet.tileOrigin()[1]);
     }
+
 }
